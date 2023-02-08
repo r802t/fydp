@@ -3,6 +3,8 @@ from calibrator import Calibrator, RectangleDetector, QRCodeDetector
 from motor_controller import MotorController
 import cv2 as cv
 import numpy as np
+import os
+import util
 #TODO: polygon 不是检测到4边的
 #TODO: 颜色有问题，不能constantly检测到红色
 #TODO: 检测手机的model不能总是检测到手机
@@ -47,16 +49,19 @@ def main():
     phone_detector = PhoneDetector()
     rect_detector = RectangleDetector()
     motor_controller = MotorController()
-    # img_loc = 'C:\\Users\\a7568\\Documents\\UW\\Project\\yolo_phone_detection\\calibration_img\\rect_4_night.jpg'
-    # img = cv.imread(img_loc)
-    # img = phone_detector.detect_phone(img)
-    # rect_detector.find_cal_ref(img)
-    # rect_detector.draw_boundary_and_center(img)
-    # draw_line(rect_detector, phone_detector, img)
-    # cv.imshow("Img", img)
-    # cv.waitKey(0)
 
-    capture_live(rect_detector, phone_detector, motor_controller)
+    img_loc = 'C:\\Users\\a7568\\Documents\\UW\\Project\\yolo_phone_detection\\calibration_img\\rect_4_night.jpg'
+    img = cv.imread(img_loc)
+    img = phone_detector.detect_phone(img)
+    rect_detector.find_cal_ref(img)
+    rect_detector.draw_boundary_and_center(img)
+    draw_line(rect_detector, phone_detector, img)
+    cv.imshow("Img", img)
+    cv.waitKey(0)
+
+    #capture_live(rect_detector, phone_detector, motor_controller)
+    #util.capture_img(r'C:\\Users\\a7568\\Documents\\UW\\Project\\yolo_phone_detection\\calibration_img\\images')
+    #util.randomly_copy_img(os.getcwd()+'\\calibration_img', os.getcwd()+'\\calibration_img', 35, True )
 
 if __name__ == "__main__":
     main()

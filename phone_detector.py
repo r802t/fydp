@@ -1,12 +1,11 @@
 import torch
-from matplotlib import pyplot as plt
 import numpy as np
 import cv2 as cv
 import util
 from dataclasses import dataclass
 
-
-#arduino = serial.Serial(port='COM4', baudrate=115200, timeout=.1)
+PHONE_WIDTH = 72
+PHONE_TALL = 148
 
 class PhoneDetector:
     @dataclass
@@ -21,13 +20,16 @@ class PhoneDetector:
 
     def load_model(self):
         ''' Load model from torch hub '''
-        model = torch.hub.load('ultralytics/yolov5', 'yolov5l')
-        model.classes = [67] # only detect phones
+        #C:\\Users\\a7568\\Documents\\UW\\Project\\yolo_phone_detection\\yolov5
+        #model = torch.hub.load('ultralytics/yolov5', 'yolov5l')
+        model = torch.hub.load('yolov5', 
+                                'custom', path='yolov5\\runs\\train\\exp8\\weights\\best.pt', source='local') 
+        #model.classes = [67] # only detect phones
         return model
     
     def detect_phone(self, img):
         ''' Detect phone from a given image '''
-        detect_result = self.model(img)
+        detect_result = self.model(img, size=120)
         center = self.get_phone_center_point(detect_result)
         if center:
             points = ([(int(detect_result.xyxy[0][0][0]),int(detect_result.xyxy[0][0][1])), #top left
@@ -76,7 +78,7 @@ class PhoneDetector:
             center = None
         return center
 
-
-    #def write_to_arduino(coordinate):
-    #    arduino.write(bytes(coordinate, 'utf-8'))
-    #    time.sleep(0.05)
+    def get_phone_dimension(self):
+        ''' Return a ratio of px/mm'''
+        ratio = (self.device.bbox[1][0]-self.device.bbox[0][0]) / PHONE_WIDTH
+        return ratio

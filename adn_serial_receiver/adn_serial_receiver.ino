@@ -10,16 +10,17 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
     if (Serial.available()>0){
-      InBytes = Serial.readStringUntil('\n');
+      InBytes = Serial.read();
       if (InBytes == "on"){
         digitalWRite(LED_BUILTIN,HIGH)
         Serial.write("Led on");
       }
       if (InBytes == "off"){
-        digitalWrite(LED_BUIILTIN,LOW);
+        digitalWrite(LED_BUILTIN,LOW);
         Serial.write("Led off");
       }
       else{
+        digitalWrite(LED_BUILTIN,HIGH)
         Serial.write("invalid input")
       }
     }
