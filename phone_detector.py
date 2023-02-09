@@ -22,8 +22,10 @@ class PhoneDetector:
         ''' Load model from torch hub '''
         #C:\\Users\\a7568\\Documents\\UW\\Project\\yolo_phone_detection\\yolov5
         #model = torch.hub.load('ultralytics/yolov5', 'yolov5l')
+        # model = torch.hub.load('yolov5', 
+        #                         'custom', path='yolov5\\runs\\train\\exp8\\weights\\best.pt', source='local') 
         model = torch.hub.load('yolov5', 
-                                'custom', path='yolov5\\runs\\train\\exp8\\weights\\best.pt', source='local') 
+                                'custom', path='yolov5s_phone.pt', source='local') 
         #model.classes = [67] # only detect phones
         return model
     

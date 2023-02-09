@@ -12,8 +12,9 @@ def count_img_in_folder(directory: str) -> int:
     return num_img
 
 def capture_img(save_to_directory:str):
-    video_capture = cv.VideoCapture(0)
-    num_img = count_img_in_folder(save_to_directory)
+    video_capture = cv.VideoCapture(1)
+    #num_img = count_img_in_folder(save_to_directory)
+    num_img = 120
     if video_capture.isOpened(): # try to get the first frame
         rval, frame = video_capture.read()
     else:
