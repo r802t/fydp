@@ -1,14 +1,22 @@
 import serial
 import time
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4ef4001676f92230c1d2925fd62f1adb64aa2861
 
 class MotorController:
     ''' Sends code to motor '''
-    def __init__(self):
+    def __init__(self,COM_port):
         # a set of coordinate that sends to motor controller
         self.move_distance = [0,0]
         self.cal_phone_dist = [0,0]
         try:
+<<<<<<< HEAD
             self.serial = serial.Serial('COM8', 115200)
+=======
+            self.serial = serial.Serial(COM_port, 115200)
+>>>>>>> 4ef4001676f92230c1d2925fd62f1adb64aa2861
         except serial.serialutil.SerialException:
             print("Arduino not found!")
 
@@ -19,11 +27,10 @@ class MotorController:
         y_diff = phone_detector.device.center_point[1] - rect_detector.calibrator.center_point[1]
         if abs(self.cal_phone_dist[0]-x_diff) > 20 or abs(self.cal_phone_dist[1]-y_diff) > 20:
             self.cal_phone_dist = [x_diff, y_diff]
-            print(self.cal_phone_dist)
-            actual_dist = self.cal_phone_dist*phone_detector.get_phone_dimension()
+            #print(self.cal_phone_dist)
+            actual_dist = [round(x / rect_detector.get_rect_dimension()/10) for x in self.cal_phone_dist]
             print(actual_dist)
-            #move_dist = convert_to_adn(self.cal_phone_dist)
-            #self.send_to_controller(move_dist)
+            #self.send_to_controller(actual_dist)
 
     def send_to_controller(self, move_dist):
         self.serial.write(b'Hello, Arduino')
