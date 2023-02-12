@@ -3,6 +3,8 @@ from dataclasses import dataclass
 import numpy as np
 from abc import ABC, abstractmethod
 
+RECT_SIDE_LENGTH = 400
+
 class Calibrator(ABC):
     
     @dataclass
@@ -25,8 +27,8 @@ class RectangleDetector(Calibrator):
         hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
         # Define range of red color in HSV
-        lower_red_1 = np.array([0,100,20])
-        upper_red_1 = np.array([20,25,255])
+        lower_red_1 = np.array([0,25,20])
+        upper_red_1 = np.array([20,100,255])
         lower_red_2 = np.array([160,100,20])
         upper_red_2 = np.array([179,255,255])
         lower_mask = cv.inRange(hsv, lower_red_1, upper_red_1)
@@ -43,7 +45,7 @@ class RectangleDetector(Calibrator):
         # Find contours in the mask
         contours, _ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
         for cnt in contours:
-            if cv.contourArea(cnt) > 750: # adjust threshold if needed
+            if cv.contourArea(cnt) > 250: # adjust threshold if needed
                 approx = cv.approxPolyDP(cnt, 0.02*cv.arcLength(cnt,True),True)
                 if len(approx) == 4:
                     # Get the rectangle bounding the contour
@@ -89,6 +91,11 @@ class RectangleDetector(Calibrator):
 
     def clear_calibrator(self):
         self.calibrator.is_detected = False
+
+    def get_rect_dimension(self):
+        ''' Return a ratio of px/mm'''
+        ratio = (self.calibrator.corner_points[2][0]-self.calibrator.corner_points[0][0]) / RECT_SIDE_LENGTH
+        return ratio
 
 
 class QRCodeDetector(Calibrator):

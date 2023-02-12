@@ -20,11 +20,8 @@ class PhoneDetector:
 
     def load_model(self):
         ''' Load model from torch hub '''
-        #C:\\Users\\a7568\\Documents\\UW\\Project\\yolo_phone_detection\\yolov5
-        #model = torch.hub.load('ultralytics/yolov5', 'yolov5l')
         model = torch.hub.load('yolov5', 
-                                'custom', path='yolov5\\runs\\train\\exp8\\weights\\best.pt', source='local') 
-        #model.classes = [67] # only detect phones
+                                'custom', path='yolov5s_phone_2.pt', source='local') 
         return model
     
     def detect_phone(self, img):
@@ -40,7 +37,6 @@ class PhoneDetector:
             cv.rectangle(img, points[0], points[1], (0, 0, 255), 2)
             cv.circle(img, center, 5, (0,255,0), -1)
             cv.putText(img=img, text=f'{center}', org=center, fontFace=cv.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(0, 255, 0),thickness=1)             
-            #detect_result = np.squeeze(detect_result.render())
         return img
 
     def save_live_img(save_to_directory:str, model):
@@ -80,5 +76,5 @@ class PhoneDetector:
 
     def get_phone_dimension(self):
         ''' Return a ratio of px/mm'''
-        ratio = (self.device.bbox[1][0]-self.device.bbox[0][0]) / PHONE_WIDTH
-        return ratio
+        ratio = (self.device.bbox[1][0]-self.device.bbox[0][0]) / PHONE_TALL *100
+        return int(ratio)
