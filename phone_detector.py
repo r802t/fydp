@@ -16,6 +16,7 @@ class PhoneDetector:
 
     def __init__(self) -> None:
         self.model = self.load_model()
+        self.model.conf = 0.6
         self.device = PhoneDetector.phone(is_detected = False, bbox=None, center_point=(0,0))
 
     def load_model(self):
@@ -26,6 +27,7 @@ class PhoneDetector:
     
     def detect_phone(self, img):
         ''' Detect phone from a given image '''
+        #TODO: Change image size
         detect_result = self.model(img, size=120)
         center = self.get_phone_center_point(detect_result)
         if center:
