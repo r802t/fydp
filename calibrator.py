@@ -28,14 +28,17 @@ class RectangleDetector(Calibrator):
 
         # Define range of red color in HSV
         lower_red_1 = np.array([0,25,20])
-        upper_red_1 = np.array([20,100,255])
+        upper_red_1 = np.array([50,100,255])
         lower_red_2 = np.array([160,100,20])
         upper_red_2 = np.array([179,255,255])
+        #Another set
+        # lower_red_1 = np.array([0, 50, 50])
+        # upper_red_1 = np.array([10, 255, 255])
+        # lower_red_2 = np.array([170, 50, 50])
+        # upper_red_2 = np.array([180, 255, 255])
         lower_mask = cv.inRange(hsv, lower_red_1, upper_red_1)
         upper_mask = cv.inRange(hsv, lower_red_2, upper_red_2)
         mask = lower_mask + upper_mask
-        #lower_red = np.array([170,200,80])
-        #upper_red = np.array([180,255,255])
 
         #At night only
         # lower_red = np.array([0,150,150])
@@ -45,14 +48,19 @@ class RectangleDetector(Calibrator):
         # Find contours in the mask
         contours, _ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
         for cnt in contours:
-            if 450 < cv.contourArea(cnt) < 1000: # adjust threshold if needed
+            if 300 < cv.contourArea(cnt) < 850 : # adjust threshold if needed
                 approx = cv.approxPolyDP(cnt, 0.02*cv.arcLength(cnt,True),True)
                 if len(approx) == 4:
+                    x, y, w, h = cv.boundingRect(cnt)
+                    ratio = float(w)/h
+                    if ratio >= 0.9 and ratio <= 1.1:
                     # Get the rectangle bounding the contour
-                    rect = cv.minAreaRect(cnt)
-                    self.calibrator.is_detected = True
-                    self.calibrator.corner_points = self.get_corner_points(rect)
-                    self.calibrator.center = self.get_center(rect)
+                        rect = cv.minAreaRect(cnt)
+                        self.calibrator.is_detected = True
+                        self.calibrator.corner_points = self.get_corner_points(
+                            rect)
+                        self.calibrator.center_point = self.get_center_point(
+                            rect)
 
 
     def draw_boundary_and_center(self, frame):
