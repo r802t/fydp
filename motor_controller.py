@@ -43,13 +43,7 @@ class MotorController:
                 self.send_hard_coordinate(actual_dist)
             #self.send_to_controller(actual_dist)
 
-    def send_to_controller(self, move_dist):
-        self.serial.write(b'Hello, Arduino')
-
     def reset_motor():
-        pass
-
-    def convert_to_adn(self, cal_phone_dist):
         pass
 
     def close_serial(self):
