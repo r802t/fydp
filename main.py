@@ -6,10 +6,11 @@ import numpy as np
 import os
 import util
 #TODO: 颜色有问题，不能constantly检测到红色
+import time
 
 def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, motor_controller):
-    video_capture = cv.VideoCapture(os.getcwd()+'\\testing_img\\phone_labelling_test\\video_1.mp4')
-    #video_capture = cv.VideoCapture(0)
+    #video_capture = cv.VideoCapture(os.getcwd()+'\\testing_img\\phone_labelling_test\\video_1.mp4')
+    video_capture = cv.VideoCapture(1)
     if video_capture.isOpened(): # try to get the first frame
         is_capturing, frame = video_capture.read()
     else:
@@ -73,10 +74,10 @@ def main():
     #run_on_image(rect_detector,phone_detector,motor_controller)
 
     capture_live(rect_detector, phone_detector, motor_controller)
+    #motor_controller.send_2d_coordinate([-50,-50])
     #util.capture_img(r'C:\\Users\\a7568\\Documents\\UW\\Project\\yolo_phone_detection\\calibration_img\\images')
     #util.capture_img(os.getcwd()+'\\calibration_img')
     #util.randomly_copy_img(os.getcwd()+'\\calibration_img', os.getcwd()+'\\calibration_img', 35, True )
-    #motor_controller.send_hard_coordinate()
-
+   
 if __name__ == "__main__":
     main()

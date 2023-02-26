@@ -72,7 +72,7 @@ class PhoneDetector:
                 self.devices.append(current_device)
                 self.devices = sorted(self.devices, key=self.sort_key)
                 self.draw_on_img(img, current_device)
-            
+        self.devices = sorted(self.devices, key=self.sort_key)
         self.devices_prev_frame = self.devices.copy()
 
         return img
@@ -159,8 +159,8 @@ class PhoneDetector:
 
     @staticmethod
     def sort_key(device):
-        return device.center[0]
-    
+        #return device.center[0]
+        return device.id    
     @staticmethod
     def find_closest_id(num, lst):
         return min(lst, key=lambda x:(abs(x-num),-x))

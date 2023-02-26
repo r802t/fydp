@@ -26,16 +26,16 @@ class RectangleDetector(Calibrator):
         ''' Find all red rectangles in a given frame '''
         hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
-        # Define range of red color in HSV
-        lower_red_1 = np.array([0,25,20])
-        upper_red_1 = np.array([50,100,255])
-        lower_red_2 = np.array([160,100,20])
-        upper_red_2 = np.array([179,255,255])
+        # # Define range of red color in HSV
+        # lower_red_1 = np.array([0,25,20])
+        # upper_red_1 = np.array([50,100,255])
+        # lower_red_2 = np.array([160,100,20])
+        # upper_red_2 = np.array([179,255,255])
         #Another set
-        # lower_red_1 = np.array([0, 50, 50])
-        # upper_red_1 = np.array([10, 255, 255])
-        # lower_red_2 = np.array([170, 50, 50])
-        # upper_red_2 = np.array([180, 255, 255])
+        lower_red_1 = np.array([0, 50, 50])
+        upper_red_1 = np.array([10, 255, 255])
+        lower_red_2 = np.array([170, 50, 50])
+        upper_red_2 = np.array([180, 255, 255])
         lower_mask = cv.inRange(hsv, lower_red_1, upper_red_1)
         upper_mask = cv.inRange(hsv, lower_red_2, upper_red_2)
         mask = lower_mask + upper_mask
@@ -59,7 +59,7 @@ class RectangleDetector(Calibrator):
                         self.calibrator.is_detected = True
                         self.calibrator.corner_points = self.get_corner_points(
                             rect)
-                        self.calibrator.center_point = self.get_center_point(
+                        self.calibrator.center = self.get_center(
                             rect)
 
 
