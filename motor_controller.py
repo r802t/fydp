@@ -28,7 +28,9 @@ class MotorController:
         if abs(self.cal_phone_dist[0]-x_diff) > 40 or abs(self.cal_phone_dist[1]-y_diff) > 40:
             self.cal_phone_dist = [x_diff, y_diff]
             new_actual_dist = [round(x / rect_detector.get_rect_dimension()/10) for x in self.cal_phone_dist]
+            #print (x / rect_detector.get_rect_dimension()/10 for x in self.cal_phone_dist)
             actual_dist = new_actual_dist
+            #ratio = (rect_detector.corner_points[1][0] - rect_detector.corner_points[0][0])/rect_detector.get_rect_dimesnion()/10 
             # if self.old_actual_dist == [0,0]:
             #     actual_dist = new_actual_dist
             # else:
@@ -40,16 +42,11 @@ class MotorController:
             print(actual_dist)
             #2d
             if actual_dist[0] < 1750 and actual_dist[1] < 500: 
-                self.send_2d_coordinate(actual_dist)
+                #self.send_2d_coordinate(actual_dist)
+                self.send_1d_coordinate(actual_dist[0])
             
 
-    def send_to_controller(self, move_dist):
-        self.serial.write(b'Hello, Arduino')
-
     def reset_motor():
-        pass
-
-    def convert_to_adn(self, cal_phone_dist):
         pass
 
     def close_serial(self):
@@ -60,7 +57,7 @@ class MotorController:
         self.send_command(command)
 
     def send_1d_coordinate(self, actual_dist, speed = 100):
-        command = f"G21{ABSOLUTE} X{str(-actual_dist)} F{speed}\n"
+        command = f"G21{ABSOLUTE} X{str(actual_dist)} F{speed}\n"
         self.send_command(command)
 
     def go_home(self):
