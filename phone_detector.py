@@ -1,7 +1,6 @@
 import torch
 import cv2 as cv
 from dataclasses import dataclass
-import math
 
 
 class PhoneDetector:
@@ -19,6 +18,8 @@ class PhoneDetector:
         self.devices = list()
         self.devices_prev_frame = list() 
         self.count = 0
+        self.old_result = list()
+        self.old_center = list()
         # To remember the location of each phones from last frame
         # so that we can assign the devices in proper order
 
@@ -80,63 +81,29 @@ class PhoneDetector:
     def detect_phone(self, img):
         detect_result = self.model(img, size=640)
         # Detect all devices and order from left to right
-        if detect_result.xyxy[0].numel():
-            for each_device in detect_result.xyxy[0]:
+        if detect_result.xywh[0].numel():
+            for each_device in detect_result.xywh[0]:
+                #sort_point(each_device)
                 current_device = PhoneDetector.phone(is_detected=True, bbox=self.get_bbox(each_device), 
                                                     center=self.get_center(each_device), id=0, conf=self.get_conf(each_device))
+                #self.print_result(each_device,current_device)
                 self.devices.append(current_device)
             self.devices = sorted(self.devices, key=self.sort_key)
             for i in range(len(self.devices)):
                 self.devices[i].id = i+1
                 self.draw_on_img(img,self.devices[i])
-            
-            # id = 1
-            # available_ids = [i for i in range(1, len(self.devices) + 1)]
-            # for each_device in self.devices:
-            #     closest_distance = float('inf')
-            #     closest_device = None
-            #     if len(self.devices_prev_frame):
-            #             for each_prev_device in self.devices_prev_frame:
-            #                 distance = math.hypot(each_prev_device.center[0] - each_device.center[0],
-            #                                     each_prev_device.center[1] - each_device.center[1])
-            #                 if distance <= closest_distance:
-            #                     closest_distance = distance
-            #                     closest_device = each_prev_device
-            #             if closest_distance < 30: 
-            #                 id = closest_device.id
-            #                 if id not in available_ids:
-            #                     id = self.find_closest_id(id, available_ids)
-            #                 available_ids.remove(id)
-            #             elif len(available_ids): #只适合加 不适合减
-            #                 id = available_ids[0]
-            #                 available_ids.remove(id)
-            #             else:
-            #                 print("Hello")
-            #                 id+=1
-            #                 break  
-
-            #     current_device.id = id
-            #     id+=1     
-            #     self.draw_on_img(img, current_device)
-
-        self.devices_prev_frame = self.devices.copy()
         return img
 
     @staticmethod
     def get_center(result):
         ''' Calculate center point from detected object '''
-        x_midpoint = int((result[0]+result[2])/2)
-        y_midpoint = int((result[1]+result[3])/2)
-        center = [x_midpoint, y_midpoint]
-
+        center = [round(float(result[0])), round(float(result[1]))]
         return center
     
     @staticmethod
     def get_bbox(result):
         ''' Get boundary box from the detected object '''
-        points = ([(int(result[0]),int(result[1])), #top left
-                       (int(result[2]),int(result[3]))]) #bottom right
-        
+        points = ([(round(float(result[0]-result[2]/2)),round(float(result[1]-result[3]/2))), (round(float(result[0]+result[2]/2)),round(float(result[1]+result[3]/2)))])
         return points
     
     @staticmethod
@@ -156,8 +123,8 @@ class PhoneDetector:
 
     @staticmethod
     def sort_key(device):
-        #return device.center[0]
-        return device.id    
+        return device.center[0]
+    
     @staticmethod
     def find_closest_id(num, lst):
         return min(lst, key=lambda x:(abs(x-num),-x))

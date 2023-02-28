@@ -57,10 +57,8 @@ class RectangleDetector(Calibrator):
                     # Get the rectangle bounding the contour
                         rect = cv.minAreaRect(cnt)
                         self.calibrator.is_detected = True
-                        self.calibrator.corner_points = self.get_corner_points(
-                            rect)
-                        self.calibrator.center = self.get_center(
-                            rect)
+                        self.calibrator.corner_points = self.get_corner_points(rect)
+                        self.calibrator.center = self.get_center(rect)
 
 
     def draw_boundary_and_center(self, frame):
@@ -104,79 +102,3 @@ class RectangleDetector(Calibrator):
         ''' Return a ratio of px/mm'''
         ratio = (self.calibrator.corner_points[2][0]-self.calibrator.corner_points[0][0]) / RECT_SIDE_LENGTH
         return ratio
-
-
-class QRCodeDetector(Calibrator):
-    
-    def __init__(self):
-        self.qr_code_detector = cv.QRCodeDetector()
-        self.calibrator_info = super().CalibratorInfo()
-        
-    def find_cal_ref(self, frame:np.ndarray):
-        '''Detect QR code in a frame'''
-        img = cv.imread(frame)
-
-        is_detected, points = self.qr_code_detector.detect(img)
-        #TODO: get qr_code center
-        corner_points = self.points_to_corner_points(is_detected, points)
-        center = self.get_center(points)
-        self.calibrator_info.is_detected = is_detected
-        self.calibrator_info.corner_points = corner_points
-        self.calibrator_info.center = center
-
-        if self.calibrator_info.is_detected:
-            print("QR code detected, data:")
-        else:
-            print("QR code not detected")
-        return self.calibrator_info
-
-    def points_to_corner_points(is_detected, points):
-        '''Convert raw points to corner points'''
-        if is_detected:
-            return np.array(points).reshape((-1,1,2)).astype(np.int32)
-        else:
-            return np.empty((1,4,2))
-
-    def draw_boundary_and_center(self, frame):
-        '''Draw boundary around the QR code'''
-        cv.drawContours(frame, [self.calibrator_info.corner_points], -1, (0, 0, 255), 2)
-        center = self.calibrator_info.center
-        cv.circle(frame, center, 5, (0,255,0), -1)
-        cv.putText(img=frame, text=f'{center}', org=center, fontFace=cv.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(0, 255, 0),thickness=1)   
-        return frame
-
-
-    def get_center(points):
-        if points is not None:
-            # calculate the center point
-            corner_centers = np.mean(points, axis=0)
-            # convert to integers
-            corner_centers = np.int0(corner_centers)
-            avg_x = (corner_centers[0][0]+corner_centers[1][0]+corner_centers[2][0]+corner_centers[3][0])/4
-            avg_y = (corner_centers[0][1]+corner_centers[1][1]+corner_centers[2][1]+corner_centers[3][1])/4
-            center = (int(avg_x), int(avg_y))
-        else:
-            print("No QR Code detected")
-        
-        return center
-    
-    def detect_live_qr(self):
-        video_capture = cv.VideoCapture(0)
-        if video_capture.isOpened(): # try to get the first frame
-            is_capturing, frame = video_capture.read()
-        else:
-            is_capturing = False
-            print('Camera not connected')
-            return
-
-        while is_capturing:
-            is_capturing, frame = video_capture.read() # capture new frame
-            self.calibrator_info.is_detected, points = self.qr_code_detector.detect(frame)
-            if self.calibrator_info.is_detected:
-                frame = self.draw_boundary_and_center(frame)
-            cv.imshow("Live capture", frame)
-            if cv.waitKey(1) & 0xFF == ord('q'):
-                break
-           
-        video_capture.release()
-        cv.destroyAllWindows()

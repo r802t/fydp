@@ -16,34 +16,25 @@ class MotorController:
             self.serial = serial.Serial(COM_port, 115200)
         except serial.serialutil.SerialException:
             print("Port not found!")
-            raise
+            #raise
         time.sleep(2)
-        self.zero_position()
+        #self.zero_position()
 
     def calc_move_dist(self, rect_detector, phone_detector):
         ''' Find position between rectangle and phone'''
         # If diff is positive that means the motor needs to move up or right
         x_diff = phone_detector.devices[0].center[0] - rect_detector.calibrator.center[0]
         y_diff = phone_detector.devices[0].center[1] - rect_detector.calibrator.center[1]
-        if abs(self.cal_phone_dist[0]-x_diff) > 40 or abs(self.cal_phone_dist[1]-y_diff) > 40:
+        if abs(self.cal_phone_dist[0]-x_diff) > 10 or abs(self.cal_phone_dist[1]-y_diff) > 10:
             self.cal_phone_dist = [x_diff, y_diff]
             new_actual_dist = [round(x / rect_detector.get_rect_dimension()/10) for x in self.cal_phone_dist]
-            #print (x / rect_detector.get_rect_dimension()/10 for x in self.cal_phone_dist)
+            #ratio = rect_detector.get_rect_dimension()/10
+            #print('Ratio: {} x_diff: {} y_diff: {}'.format(ratio, x_diff, y_diff))
             actual_dist = new_actual_dist
-            #ratio = (rect_detector.corner_points[1][0] - rect_detector.corner_points[0][0])/rect_detector.get_rect_dimesnion()/10 
-            # if self.old_actual_dist == [0,0]:
-            #     actual_dist = new_actual_dist
-            # else:
-            #     #2d
-            #     actual_dist = list(np.array(new_actual_dist) - np.array(self.old_actual_dist))
-            #     #1d
-            #     #actual_dist = new_actual_dist[0] - self.old_actual_dist[0]
-            # self.old_actual_dist = new_actual_dist
             print(actual_dist)
-            #2d
-            if actual_dist[0] < 1750 and actual_dist[1] < 500: 
+            #if actual_dist[0] < 1750 and actual_dist[1] < 500: 
                 #self.send_2d_coordinate(actual_dist)
-                self.send_1d_coordinate(actual_dist[0])
+                #self.send_1d_coordinate(actual_dist[0])
             
 
     def reset_motor():
