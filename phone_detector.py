@@ -15,11 +15,9 @@ class PhoneDetector:
     def __init__(self) -> None:
         self.model = self.load_model()
         self.model.conf = 0.7
-        self.devices = list()
+        self.devices = list() 
         self.devices_prev_frame = list() 
         self.count = 0
-        self.old_result = list()
-        self.old_center = list()
         # To remember the location of each phones from last frame
         # so that we can assign the devices in proper order
 
