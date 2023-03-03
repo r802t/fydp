@@ -9,6 +9,8 @@ import util
 def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, motor_controller, hand_detector: HandDetector):
     #video_capture = cv.VideoCapture(os.getcwd()+'\\testing_img\\distance_test\\testing_video.mp4')
     video_capture = cv.VideoCapture(0)
+    video_capture.set(cv.CAP_PROP_FRAME_WIDTH, 1920)
+    video_capture.set(cv.CAP_PROP_FRAME_HEIGHT, 1080)
     if video_capture.isOpened(): # try to get the first frame
         is_capturing, frame = video_capture.read()
     else:
@@ -20,7 +22,8 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
         is_capturing, frame = video_capture.read() # capture new frame
         if not is_capturing:
             break
-
+        # cv.circle(frame, (5,5), 5, (0, 0, 255), 2)
+        # cv.circle(frame, (1800,1000), 5, (0, 0, 255), 2)
         frame = phone_detector.detect_phone(frame)
         calibrator.find_cal_ref(frame)
         calibrator.draw_boundary_and_center(frame)
@@ -33,12 +36,10 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
         
         cv.imshow("Live capture", frame)
 
-        key = cv.waitKey(25)
-        if key & 0xFF == ord(" "):
-            while key & 0xFF != ord(" "):
-                key = cv.waitKey(25)
-            #break
-        
+        key = cv.waitKey(1)
+        if key & 0xFF == ord('q'):
+            break
+    
     video_capture.release()
     cv.destroyAllWindows()
 
