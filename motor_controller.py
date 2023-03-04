@@ -6,17 +6,14 @@ import numpy as np
 RELATIVE = 'G91'
 ABSOLUTE = ''
 
-intrinsic_mtx = np.array([[933, 0, 631],
-                          [0, 932, 364],
-                          [0, 0, 1]])
-
 class MotorController:
     ''' Sends code to motor '''
     def __init__(self,COM_port):
         # a set of coordinate that sends to motor controller
         self.old_actual_dist = [0,0]
         self.cal_phone_dist = [0,0]
-        self.height = 930
+        self.height = 800
+        self.load_calib_param()
         try:
             self.serial = serial.Serial(COM_port, 115200)
         except serial.serialutil.SerialException:
@@ -90,7 +87,19 @@ class MotorController:
     def px2world(self, coord):
         ''' Convert pixel coordinate to world coordinate '''
         #(u-cx)/fx*z
-        x = (coord[0]-intrinsic_mtx[0][2])/intrinsic_mtx[0][0]*self.height
+        x = (coord[0]-self.intrinsic_mtx[0][2])/self.intrinsic_mtx[0][0]*self.height
         #(v-cy)/fy*z
-        y = (coord[1]-intrinsic_mtx[1][2])/intrinsic_mtx[1][1]*self.height
+        y = (coord[1]-self.intrinsic_mtx[1][2])/self.intrinsic_mtx[1][1]*self.height
         return (round(x), round(y))
+    
+    def load_calib_param(self):
+        ''' Load camera params from npz file '''
+        try:
+            data = np.load('camera_calibration//calib_param.npz')
+        except Exception as e:
+            print('npz file not found')
+            raise
+        self.intrinsic_mtx = data['mtx']
+        self.camera_dist = data['dist']
+        self.rvecs = data['rvecs']
+        self.tvecs = data['tvecs']

@@ -24,7 +24,7 @@ class PhoneDetector:
     def load_model(self):
         ''' Load model from torch hub '''
         model = torch.hub.load('yolov5', 
-                                'custom', path='yolov5s_phone_3.pt', source='local') 
+                                'custom', path='trained_models/yolov5s_phone_3.pt', source='local') 
         return model
     
     # def detect_phone(self, img):
