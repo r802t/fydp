@@ -28,8 +28,11 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
         calibrator.draw_boundary_and_center(frame)
         #hand_detector.detect_finger_tip(frame)
         #hand_detector.draw_finger_tip(frame)
+        #phone_pos = None
+        #if hand_detector.is_finger_stay_still():
+            #phone_pos = is_finger_on_phone(hand_detector, phone_detector)
         draw_line(calibrator, phone_detector, frame)
-        control_motor(motor_controller, calibrator, phone_detector, hand_detector)
+        control_motor(motor_controller, calibrator, phone_detector, phone_pos=None)
         calibrator.clear_calibrator()
         phone_detector.clear_device()
         
@@ -44,21 +47,19 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
 
 def draw_line(calibrator:RectangleDetector, phone_detector:PhoneDetector, frame):
     if calibrator.calibrator.is_detected and phone_detector.devices:
-        if phone_detector.devices[0].is_detected:
+        #if phone_detector.devices[0].is_detected:
             cv.line(frame, calibrator.calibrator.center, phone_detector.devices[0].center, (0, 0, 255), 2)
 
-def control_motor(motor_controller: MotorController,calibrator:RectangleDetector, phone_detector:PhoneDetector, hand_detector: HandDetector):
+def control_motor(motor_controller: MotorController,calibrator:RectangleDetector, phone_detector:PhoneDetector, phone_pos):
     if calibrator.calibrator.is_detected and phone_detector.devices:
-        if phone_detector.devices[0].is_detected:
-            is_finger_on_phone(hand_detector, phone_detector)
-            motor_controller.calc_move_dist(calibrator, phone_detector)
+        motor_controller.calc_move_dist(calibrator, phone_detector)
 
 def is_finger_on_phone(hand_detector:HandDetector, phone_detector:PhoneDetector):
-    for device in phone_detector.devices:
-        if device.bbox[0][0] < hand_detector.x < device.bbox[1][0] and device.bbox[0][1] < hand_detector.y < device.bbox[1][1]:
-            hand_detector.finger_on_phone = True
-            break
-        hand_detector.finger_on_phone = False
+    if hand_detector.is_detected and phone_detector.devices:
+        for device in phone_detector.devices:
+            if device.bbox[0][0] < hand_detector.x < device.bbox[1][0] and device.bbox[0][1] < hand_detector.y < device.bbox[1][1]:
+                return device.center
+    return None
 
 def run_on_image(rect_detector: Calibrator, phone_detector: PhoneDetector, motor_controller: MotorController):
     img_loc = os.getcwd()+'\\testing_img\\calibration_img_2\\image_2.jpg'
@@ -84,11 +85,11 @@ def main():
     phone_detector = PhoneDetector()
     rect_detector = RectangleDetector()
     motor_controller = MotorController('COM8')
-    hand_detector = HandDetector()
+    #hand_detector = HandDetector()
 
     #run_on_image(rect_detector,phone_detector,motor_controller)
 
-    capture_live(rect_detector, phone_detector, motor_controller, hand_detector)
+    capture_live(rect_detector, phone_detector, motor_controller, hand_detector=None)
     #util.capture_img(r'C:\\Users\\a7568\\Documents\\UW\\Project\\yolo_phone_detection\\calibration_img\\images')
     #util.capture_img(os.getcwd()+'\\calibration_img')
     #util.randomly_copy_img(os.getcwd()+'\\calibration_img', os.getcwd()+'\\calibration_img', 35, True )

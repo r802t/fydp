@@ -101,6 +101,7 @@ class PhoneDetector:
     @staticmethod
     def get_bbox(result):
         ''' Get boundary box from the detected object '''
+        # points[0]=top left points[1]=bottom right
         points = ([(round(float(result[0]-result[2]/2)),round(float(result[1]-result[3]/2))), (round(float(result[0]+result[2]/2)),round(float(result[1]+result[3]/2)))])
         return points
     
