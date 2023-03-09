@@ -3,6 +3,8 @@ import time
 import numpy as np
 import threading
 import queue
+import math
+from calibrator import Calibrator
 
 
 RELATIVE = 'G21G91'
@@ -26,8 +28,8 @@ class MotorController:
         time.sleep(2)
         self.go_home()
         self.zero_position()
-        self.message_queue = queue.Queue()
-        self.is_charging = False
+        #self.message_queue = queue.Queue()
+        #self.is_charging = False
         #self.indicator_listener = threading.Thread(target=self.poll_serial)#, args=('/dev/ttyACM0', 9600))
         #self.indicator_listener.start()
 
@@ -47,12 +49,17 @@ class MotorController:
 
     def calc_move_dist(self, rect_detector, phone_detector):
         ''' Find position between rectangle and phone'''
-        # If diff is positive that means the motor needs to move up or right
-        rect_world_coord = self.px2world(rect_detector.calibrator.center)
+        # If diff is positive that means the motor needs to move up or right    
+        #rect_world_coord = self.px2world(rect_detector.calibrator.center)
+        rect_world_coord = self.px2world(rect_detector.center)
         phone_world_coord = self.px2world(phone_detector.devices[0].center)
         # x+是往外走 y-是往外走
         x_diff = phone_world_coord[0] - rect_world_coord[0] # should be positive
         y_diff = phone_world_coord[1] - rect_world_coord[1] # should be positive
+
+        if rect_detector.center[0] > 500:
+            x_diff = 855+x_diff
+            y_diff = -350+y_diff
         #x_diff = rect_world_coord[0] - phone_world_coord[0]
         #y_diff = rect_world_coord[1] - phone_world_coord[1]
         if self.count != 0:
@@ -92,7 +99,8 @@ class MotorController:
             #command = f"{PRB_INTR} X{str(phase_1_x)} Y{str(phase_1_y)} F{6000}\n"
             #print('Phase 1 command is {}'.format(command))
             #self.send_command(command)
-            command = f"{PRB_INTR} X{str(actual_dist[0])} Y{str(actual_dist[1])} F{1000}\n"
+            command = f"$J={ABSOLUTE} X{str(actual_dist[0])} Y{str(actual_dist[1])} F{6000}\n"
+            #command = f"{PRB_INTR} X{str(actual_dist[0])} Y{str(actual_dist[1])} F{6000}\n"
             print('Phase 2 command is {}'.format(command))
             self.send_command(command)
             self.send_command(f"$X\n")
@@ -170,3 +178,17 @@ class MotorController:
                 self.message_queue.put(line)
             # if line == b'ok\r\n':
             #     break
+    @staticmethod
+    def find_shortest_dist(calibrators, phones):
+        shortest_dist = 10000
+        curr_dist = 0
+        selected_calib = Calibrator.CalibratorInfo(False, None,None)
+        for each_calibrator in calibrators.calibrators:
+            for each_phone in phones.devices:
+                curr_dist = math.hypot(each_phone.center[0]-each_calibrator.center[0], each_phone.center[1]-each_calibrator.center[1])
+                if curr_dist <= shortest_dist:
+                    shortest_dist = curr_dist
+                    selected_calib = each_calibrator
+                    selected_phone = each_phone
+        return selected_calib
+

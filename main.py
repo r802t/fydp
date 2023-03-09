@@ -6,7 +6,7 @@ import cv2 as cv
 import os
 import util
 
-def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, motor_controller: MotorController):#, hand_detector: HandDetector):
+def capture_live(calibrators:RectangleDetector, phone_detector: PhoneDetector, motor_controller: MotorController):#, hand_detector: HandDetector):
     #video_capture = cv.VideoCapture(os.getcwd()+'/testing_img/video_1.mp4')
     video_capture = cv.VideoCapture(0)
     video_capture.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
@@ -24,19 +24,26 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
             break
         #frame = undistort_frame(frame, motor_controller.intrinsic_mtx, motor_controller.camera_dist)
         frame = phone_detector.detect_phone(frame)
-        calibrator.find_cal_ref(frame)
-        calibrator.draw_boundary_and_center(frame)
+        calibrators.find_cal_ref(frame)
+        calibrators.draw_boundary_and_center(frame)
         #hand_detector.detect_finger_tip(frame)
         #hand_detector.draw_finger_tip(frame)
+        if phone_detector.devices:
+            calibrator = motor_controller.find_shortest_dist(calibrators, phone_detector)
+        elif calibrators.calibrators:
+            calibrator = calibrators.calibrators[0]
+        else:
+            calibrator = Calibrator.CalibratorInfo(False, None,None)
         draw_line(calibrator, phone_detector, frame)
-        control_motor(motor_controller, calibrator, phone_detector)#, hand_detector)
+        if len(calibrators.calibrators) == 2:
+            control_motor(motor_controller, calibrator, phone_detector)#, hand_detector)
         # for message in motor_controller.message_queue.queue:
         #     print("Message is {}".format(message))
         #     if message[1:4] == 'PRB' and not motor_controller.is_charging:
         #         motor_controller.self_correct(calibrator, phone_detector)
         #         print("The device need to self correct! ")
         #         break
-        calibrator.clear_calibrator()
+        calibrators.clear_calibrator()
         phone_detector.clear_device()
         
         cv.imshow("Live capture", frame)
@@ -49,12 +56,15 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
     cv.destroyAllWindows()
 
 def draw_line(calibrator:RectangleDetector, phone_detector:PhoneDetector, frame):
-    if calibrator.calibrator.is_detected and phone_detector.devices:
+    #if calibrator.calibrator.is_detected and phone_detector.devices:
+     if calibrator.is_detected and phone_detector.devices:
         if phone_detector.devices[0].is_detected:
-            cv.line(frame, calibrator.calibrator.center, phone_detector.devices[0].center, (0, 0, 255), 2)
+            #cv.line(frame, calibrator.calibrator.center, phone_detector.devices[0].center, (0, 0, 255), 2)
+            cv.line(frame, calibrator.center, phone_detector.devices[0].center, (0, 0, 255), 2)
 
 def control_motor(motor_controller: MotorController,calibrator:RectangleDetector, phone_detector:PhoneDetector):#, hand_detector: HandDetector):
-    if calibrator.calibrator.is_detected and phone_detector.devices:
+    #if calibrator.calibrator.is_detected and phone_detector.devices:
+    if calibrator.is_detected and phone_detector.devices:
         if phone_detector.devices[0].is_detected:
             #is_finger_on_phone(hand_detector, phone_detector)
             motor_controller.calc_move_dist(calibrator, phone_detector)
