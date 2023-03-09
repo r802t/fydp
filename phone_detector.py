@@ -114,7 +114,7 @@ class PhoneDetector:
 
     @staticmethod
     def draw_on_img(img, device):
-        cv.rectangle(img, device.bbox[0], device.bbox[1], (0, 0, 255), 2)
+        cv.rectangle(img, device.bbox[0], device.bbox[1], (0, 255, 0), 2)
         cv.circle(img, device.center, 5, (0,255,0), -1)
         cv.putText(img=img, text=f'{device.center}', org=device.center, fontFace=cv.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(0, 255, 0),thickness=1)
         cv.putText(img=img, text=f'Device {device.id} {device.conf}', org=device.bbox[0], fontFace=cv.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(0, 255, 0),thickness=1)       

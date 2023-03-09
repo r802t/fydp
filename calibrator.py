@@ -39,7 +39,7 @@ class RectangleDetector(Calibrator):
         # upper_red_1 = np.array([10, 255, 255])
         # lower_red_2 = np.array([170, 50, 50])
         # upper_red_2 = np.array([180, 255, 255])
-        lower_red_1 = np.array([0,70,50])
+        lower_red_1 = np.array([0,70,50]) #70
         upper_red_1 = np.array([10,255,255])
         lower_red_2 = np.array([160,70,50])
         upper_red_2 = np.array([180,255,255])
@@ -61,13 +61,13 @@ class RectangleDetector(Calibrator):
         # Find contours in the mask
         contours, _ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
         for cnt in contours:
-            if 1500 <cv.contourArea(cnt) < 3000 : # adjust threshold if needed
+            if 1500 <cv.contourArea(cnt) < 5000 : # adjust threshold if needed
                 approx = cv.approxPolyDP(cnt, 0.02*cv.arcLength(cnt,True),True)
                 cv.fillPoly(frame,[cnt],(0,255,0))
                 if len(approx) == 4:
                     x, y, w, h = cv.boundingRect(cnt)
                     ratio = float(w)/h
-                    if ratio >= 0.8 and ratio <= 1.2:
+                    if ratio >= 0.7 and ratio <= 1.3:
                     # Get the rectangle bounding the contour
                         rect = cv.minAreaRect(cnt)
                         self.calibrator.is_detected = True
@@ -77,7 +77,7 @@ class RectangleDetector(Calibrator):
 
     def draw_boundary_and_center(self, frame):
         ''' Draw the boundary and center given the contours in a frame'''
-        if self.calibrator.is_detected is True:
+        if self.calibrator.is_detected is True and self.calibrator.center[0] > 800:
             cv.polylines(frame, [self.calibrator.corner_points], True, (255, 255, 0), 2)
             self.draw_center(frame)
 
@@ -107,7 +107,7 @@ class RectangleDetector(Calibrator):
         center = self.calibrator.center
         cv.circle(frame, center, 5, (0, 255, 0), -1)
         cv.putText(img=frame, text=f'{center}', org=center, fontFace=cv.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(
-            0, 255, 0), thickness=1)
+            0, 0, 255), thickness=1)
 
     def clear_calibrator(self):
         self.calibrator.is_detected = False
