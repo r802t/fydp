@@ -26,8 +26,8 @@ class MotorController:
         time.sleep(2)
         self.go_home()
         self.zero_position()
-        self.message_queue = queue.Queue()
-        self.is_charging = False
+        #self.message_queue = queue.Queue()
+        #self.is_charging = False
         #self.indicator_listener = threading.Thread(target=self.poll_serial)#, args=('/dev/ttyACM0', 9600))
         #self.indicator_listener.start()
 
@@ -81,18 +81,22 @@ class MotorController:
     def close_serial(self):
         self.serial.close()
 
-    def send_2d_coordinate(self, actual_dist, speed = 3000):
+    def send_2d_coordinate(self, actual_dist, speed = 6000):
         #if actual_dist[0] > 0:
         send_phase_1_command = False
         if actual_dist[1] < 0:
             command = f"$X\n"
             self.send_command(command)
-            #phase_1_x= actual_dist[0] + 15 * (actual_dist[0] < 0) - 15 * (actual_dist[0] >= 0)
-            #phase_1_y= actual_dist[1] + 15 * (actual_dist[1] < 0) - 15 * (actual_dist[1] >= 0)
+            phase_1_x= actual_dist[0] - 12 * (actual_dist[0] < 0) + 12 * (actual_dist[0] >= 0)
+            phase_1_y= actual_dist[1] - 12 * (actual_dist[1] < 0) + 12 * (actual_dist[1] >= 0)
+            if actual_dist[0] > 700:
+                phase_1_x= actual_dist[0] - 23 * (actual_dist[0] < 0) + 23 * (actual_dist[0] >= 0)
             #command = f"{PRB_INTR} X{str(phase_1_x)} Y{str(phase_1_y)} F{6000}\n"
             #print('Phase 1 command is {}'.format(command))
             #self.send_command(command)
-            command = f"{PRB_INTR} X{str(actual_dist[0])} Y{str(actual_dist[1])} F{1000}\n"
+            command = f"$J={ABSOLUTE} X{str(phase_1_x)} Y{str(phase_1_y)} F{speed}\n"
+            #command = f"$J={ABSOLUTE} X{str(actual_dist[0])} Y{str(actual_dist[1])} F{speed}\n"
+            #command = f"{PRB_INTR} X{str(actual_dist[0])} Y{str(actual_dist[1])} F{speed}\n"
             print('Phase 2 command is {}'.format(command))
             self.send_command(command)
             self.send_command(f"$X\n")
