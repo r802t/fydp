@@ -15,18 +15,16 @@ class PhoneDetector:
     def __init__(self) -> None:
         self.model = self.load_model()
         self.model.conf = 0.7
-        self.devices = list()
+        self.devices = list() 
         self.devices_prev_frame = list() 
         self.count = 0
-        self.old_result = list()
-        self.old_center = list()
         # To remember the location of each phones from last frame
         # so that we can assign the devices in proper order
 
     def load_model(self):
         ''' Load model from torch hub '''
         model = torch.hub.load('yolov5', 
-                                'custom', path='yolov5s_phone_3.pt', source='local') 
+                                'custom', path='trained_models/yolov5s_phone_3.pt', source='local') 
         return model
     
     # def detect_phone(self, img):
@@ -116,7 +114,7 @@ class PhoneDetector:
 
     @staticmethod
     def draw_on_img(img, device):
-        cv.rectangle(img, device.bbox[0], device.bbox[1], (0, 0, 255), 2)
+        cv.rectangle(img, device.bbox[0], device.bbox[1], (0, 255, 0), 2)
         cv.circle(img, device.center, 5, (0,255,0), -1)
         cv.putText(img=img, text=f'{device.center}', org=device.center, fontFace=cv.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(0, 255, 0),thickness=1)
         cv.putText(img=img, text=f'Device {device.id} {device.conf}', org=device.bbox[0], fontFace=cv.FONT_HERSHEY_TRIPLEX, fontScale=0.5, color=(0, 255, 0),thickness=1)       
@@ -128,3 +126,4 @@ class PhoneDetector:
     @staticmethod
     def find_closest_id(num, lst):
         return min(lst, key=lambda x:(abs(x-num),-x))
+    

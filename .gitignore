@@ -2,3 +2,7 @@ __pycache__
 training_img
 testing_img
 calibration_img
+yolov5
+fydp
+.DS_Store
+.ipynb_checkpoints
