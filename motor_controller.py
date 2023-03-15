@@ -53,23 +53,19 @@ class MotorController:
         # x+是往外走 y-是往外走
         x_diff = phone_world_coord[0] - rect_world_coord[0] # should be positive
         y_diff = phone_world_coord[1] - rect_world_coord[1] # should be positive
-        #x_diff = rect_world_coord[0] - phone_world_coord[0]
-        #y_diff = rect_world_coord[1] - phone_world_coord[1]
         if self.count != 0:
             self.count+=1
-        if self.count >=5 or abs(self.cal_phone_dist[0]-x_diff) > 20 or abs(self.cal_phone_dist[1]-y_diff) > 20:
-            self.count +=1
-            print("phone_coord={}".format(phone_world_coord))
-            print("rect_coord={}".format(rect_world_coord))
-            print("cal_phone_dist={}".format(self.cal_phone_dist))
-            print("x_diff={}, y_diff={}".format(x_diff,y_diff))
-            self.cal_phone_dist = [x_diff, y_diff]
-            if abs(self.cal_phone_dist[0]) < 855 and self.cal_phone_dist[1] < 350: 
-                if self.count >=5:
+        is_motor_under_phone_region = self.is_motor_under_phone_region(self.cal_phone_dist, phone_detector)
+        if not is_motor_under_phone_region:
+            if self.count >=10 or self.has_phone_moved(self.cal_phone_dist, x_diff, y_diff):
+                self.count +=1
+                self.cal_phone_dist = [x_diff, y_diff]
+                if self.is_in_allowable_region(self.cal_phone_dist): 
+                    #if self.count >=5:
                     print("Actual dist: {}".format(self.cal_phone_dist))
                     self.send_2d_coordinate(self.cal_phone_dist)
-                    self.count=0
-            #self.send_1d_coordinate(self.cal_phone_dist[0])
+                    self.count=0 #refresh count
+                #self.send_1d_coordinate(self.cal_phone_dist[0])
 
     def self_correct(self, rect_detector, phone_detector):
         self.message_queue.queue.clear()
@@ -174,3 +170,18 @@ class MotorController:
                 self.message_queue.put(line)
             # if line == b'ok\r\n':
             #     break
+
+    def is_motor_under_phone_region(self, curr_motor_pos, phone_detector):
+        for each_phone in phone_detector.devices:
+            bbox_world_coord = [self.px2world(point) for point in each_phone.bbox]
+            if bbox_world_coord[0][0] < curr_motor_pos[0] < bbox_world_coord[1][0] and bbox_world_coord[0][1] < curr_motor_pos[1] < bbox_world_coord[1][1]:
+                return True
+        return False
+    
+    @staticmethod
+    def has_phone_moved(cal_phone_dist, x_diff, y_diff):
+       return abs(cal_phone_dist[0]-x_diff) > 20 or abs(cal_phone_dist[1]-y_diff) > 20
+    
+    @staticmethod
+    def is_in_allowable_region(cal_phone_dist):
+        return abs(cal_phone_dist[0]) < 855 and cal_phone_dist[1] < 350
