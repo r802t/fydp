@@ -8,64 +8,46 @@ import queue
 RELATIVE = 'G21G91'
 ABSOLUTE = 'G21G90'
 PRB_INTR = 'G38.2'
+UNLOCK = f"$X\n"
 
 class MotorController:
     ''' Sends code to motor '''
-    def __init__(self,COM_port):
+    def __init__(self,COM_port, run_on_motor):
         # a set of coordinate that sends to motor controller
-        self.old_actual_dist = [0,0]
-        self.cal_phone_dist = [0,0]
+        self.charger_pos = [0,0]
         self.height = 780
         self.load_calib_param()
-        self.count = 0
-        try:
-            self.serial = serial.Serial(COM_port, 115200)
-        except serial.serialutil.SerialException:
-            print("Port not found!")
-            raise
-        time.sleep(2)
-        self.go_home()
-        self.zero_position()
-        #self.message_queue = queue.Queue()
-        #self.is_charging = False
-        #self.indicator_listener = threading.Thread(target=self.poll_serial)#, args=('/dev/ttyACM0', 9600))
-        #self.indicator_listener.start()
-
-    # def calc_move_dist(self, rect_detector, phone_detector):
-    #     ''' Find position between rectangle and phone'''
-    #     # If diff is positive that means the motor needs to move up or right
-    #     x_diff = phone_detector.devices[0].center[0] - rect_detector.calibrator.center[0]
-    #     y_diff = phone_detector.devices[0].center[1] - rect_detector.calibrator.center[1]
-    #     if abs(self.cal_phone_dist[0]-x_diff) > 10 or abs(self.cal_phone_dist[1]-y_diff) > 10:
-    #         self.cal_phone_dist = [x_diff, y_diff]
-    #         new_actual_dist = [round(x / rect_detector.get_rect_dimension()/10) for x in self.cal_phone_dist]
-    #         actual_dist = new_actual_dist
-    #         print(actual_dist)
-    #         #if actual_dist[0] < 1750 and actual_dist[1] < 500: 
-    #             #self.send_2d_coordinate(actual_dist)
-    #             #self.send_1d_coordinate(actual_dist[0])
+        self.move_count = 0  
+        if run_on_motor:
+            try:
+                self.serial = serial.Serial(COM_port, 115200)
+            except serial.serialutil.SerialException:
+                print("Port not found!")
+                raise
+            time.sleep(2)
+            self.go_home()
+            self.zero_position()
 
     def calc_move_dist(self, rect_detector, phone_detector):
         ''' Find position between rectangle and phone'''
-        # If diff is positive that means the motor needs to move up or right
-        rect_world_coord = self.px2world(rect_detector.calibrator.center)
-        phone_world_coord = self.px2world(phone_detector.devices[0].center)
-        # x+是往外走 y-是往外走
-        x_diff = phone_world_coord[0] - rect_world_coord[0] # should be positive
-        y_diff = phone_world_coord[1] - rect_world_coord[1] # should be positive
-        if self.count != 0:
-            self.count+=1
-        is_motor_under_phone_region = self.is_motor_under_phone_region(self.cal_phone_dist, phone_detector)
-        if not is_motor_under_phone_region:
-            if self.count >=10 or self.has_phone_moved(self.cal_phone_dist, x_diff, y_diff):
-                self.count +=1
-                self.cal_phone_dist = [x_diff, y_diff]
-                if self.is_in_allowable_region(self.cal_phone_dist): 
-                    #if self.count >=5:
-                    print("Actual dist: {}".format(self.cal_phone_dist))
-                    self.send_2d_coordinate(self.cal_phone_dist)
-                    self.count=0 #refresh count
-                #self.send_1d_coordinate(self.cal_phone_dist[0])
+        #Get all distance between calibrator to all phones
+        dists = self.get_all_dist(rect_detector, phone_detector)
+        
+        #TODO: here are frames where a phone cannot be detected in a frame and therefore we should also consider that 
+        if not self.is_charger_under_phone(self.charger_pos, dists): # If the charger is not under phone's region than move else move
+            self.move_count +=1
+            if self.move_count == 15: # Confirm if a phone is really on top of a charger (in case a phone is not detected for some frames)
+                self.move_count = 0
+                if abs(self.charger_pos[0] - dists[0][0]) > 10 or abs(self.charger_pos[1] - dists[0][1]) > 10:
+                # If the left most phone moved, move the charger to the left most phone
+                    self.move_count +=1
+                    if self.move_count == 5: # Wait until the phone has stayey long enough at the same position (in case a phone is not detected at certain frames)
+                        self.charger_pos = dists[0] # Update motor position
+                        self.send_2d_coordinate(self.charger_pos) # Move motor
+                        print("Acutal dist: {}".format(self.charger_pos))
+                        self.move_count = 0
+    
+        
 
     def self_correct(self, rect_detector, phone_detector):
         self.message_queue.queue.clear()
@@ -77,43 +59,31 @@ class MotorController:
     def close_serial(self):
         self.serial.close()
 
-    def send_2d_coordinate(self, actual_dist, speed = 6000):
-        #if actual_dist[0] > 0:
-        send_phase_1_command = False
-        if actual_dist[1] < 0:
-            command = f"$X\n"
-            self.send_command(command)
-            phase_1_x= actual_dist[0] - 12 * (actual_dist[0] < 0) + 12 * (actual_dist[0] >= 0)
-            phase_1_y= actual_dist[1] - 12 * (actual_dist[1] < 0) + 12 * (actual_dist[1] >= 0)
-            if actual_dist[0] > 700:
-                phase_1_x= actual_dist[0] - 23 * (actual_dist[0] < 0) + 23 * (actual_dist[0] >= 0)
-            #command = f"{PRB_INTR} X{str(phase_1_x)} Y{str(phase_1_y)} F{6000}\n"
-            #print('Phase 1 command is {}'.format(command))
-            #self.send_command(command)
-            command = f"$J={ABSOLUTE} X{str(phase_1_x)} Y{str(phase_1_y)} F{speed}\n"
-            #command = f"$J={ABSOLUTE} X{str(actual_dist[0])} Y{str(actual_dist[1])} F{speed}\n"
-            #command = f"{PRB_INTR} X{str(actual_dist[0])} Y{str(actual_dist[1])} F{speed}\n"
-            print('Phase 2 command is {}'.format(command))
-            self.send_command(command)
-            self.send_command(f"$X\n")
+    def send_2d_coordinate(self, distance, speed = 6000):
+        if distance[1] < 0:
+            # Adjust factor to get a more precise location
+            x_dest= distance[0] - 12 * (distance[0] < 0) + 12 * (distance[0] >= 0)
+            y_dest= distance[1] - 12 * (distance[1] < 0) + 12 * (distance[1] >= 0)
+            if distance[0] > 700:
+                # If distance is too larger than the adjust factor should be changed
+                x_dest= distance[0] - 23 * (distance[0] < 0) + 23 * (distance[0] >= 0)
+            if self.is_in_allowable_region([x_dest, y_dest]): # Check if motor will go out of bound
+                self.send_command(UNLOCK)
+                command = f"$J={ABSOLUTE} X{str(x_dest)} Y{str(y_dest)} F{speed}\n"
+                self.send_command(command)
+            else:
+                print("Destination is out of bound: {}".format([x_dest,y_dest]))
 
     def send_1d_coordinate(self, actual_dist, speed = 3000):
-        # + is going toward home
-        #if actual_dist > 0:
-            command = f"$X\n"
-            self.send_command(command)
-            command = f"{PRB_INTR} X{str(actual_dist)} F{speed}\n"
-            self.send_command(command)
+        command = f"$X\n"
+        self.send_command(command)
+        command = f"{PRB_INTR} X{str(actual_dist)} F{speed}\n"
+        self.send_command(command)
 
     def go_home(self):
         ''' Go to zero point for all motors'''
         self.send_command(f'$X\n')
         self.send_command(f'$H\n')
-        # while True:
-        #     line = self.serial.readline()
-        #     if line == b'ok\r\n':
-        #         print("Homing finished. ")
-        #         break
 
     def zero_position(self):
         '''Zero out the position'''
@@ -126,15 +96,8 @@ class MotorController:
             line =self.serial.readline()
             print(line)
             if line == b'ok\r\n':
-                print("Ok")
+                #print("Ok")
                 break
-        # while True:
-        #     line = self.serial.readline()
-        #     print(line)
-        #     #if line[1:4] == 'PRB' and line[-6] == '1':
-        #         #print("Motor should stop")
-        #     if line == b'ok\r\n':
-        #         break
 
     def px2world(self, coord):
         ''' Convert pixel coordinate to world coordinate '''
@@ -168,14 +131,12 @@ class MotorController:
                 if line[1:4] == 'PRB':
                     self.is_charging = [-6]
                 self.message_queue.put(line)
-            # if line == b'ok\r\n':
-            #     break
 
-    def is_motor_under_phone_region(self, curr_motor_pos, phone_detector):
-        for each_phone in phone_detector.devices:
-            bbox_world_coord = [self.px2world(point) for point in each_phone.bbox]
-            if bbox_world_coord[0][0] < curr_motor_pos[0] < bbox_world_coord[1][0] and bbox_world_coord[0][1] < curr_motor_pos[1] < bbox_world_coord[1][1]:
-                return True
+    def is_charger_under_phone(self, charger_pos, dists):
+        for each_dist in dists:
+            if abs(charger_pos[0]-each_dist[0])<10 or abs(charger_pos[1]-each_dist[1])<10:
+                # The charger is under a phone
+                return True 
         return False
     
     @staticmethod
@@ -183,5 +144,15 @@ class MotorController:
        return abs(cal_phone_dist[0]-x_diff) > 20 or abs(cal_phone_dist[1]-y_diff) > 20
     
     @staticmethod
-    def is_in_allowable_region(cal_phone_dist):
-        return abs(cal_phone_dist[0]) < 855 and cal_phone_dist[1] < 350
+    def is_in_allowable_region(destination):
+        return abs(destination[0]) < 855 and destination[1] < 350
+    
+    def get_all_dist(self, calibrator, phones):
+        rect_world_coord = self.px2world(calibrator.calibrator.center)
+        calibrator_phone_dists = []
+        for each_phone in phones.devices:
+            phone_world_coord = self.px2world(each_phone.center)
+            x_diff = phone_world_coord[0] - rect_world_coord[0] # should be positive
+            y_diff = phone_world_coord[1] - rect_world_coord[1] # should be positive
+            calibrator_phone_dists.append([x_diff,y_diff])
+        return calibrator_phone_dists
