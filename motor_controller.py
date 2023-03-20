@@ -18,6 +18,7 @@ class MotorController:
         self.height = 780
         self.load_calib_param()
         self.move_count = 0  
+        self.on_phone_count = 0
         if run_on_motor:
             try:
                 self.serial = serial.Serial(COM_port, 115200)
@@ -35,13 +36,16 @@ class MotorController:
         
         #TODO: here are frames where a phone cannot be detected in a frame and therefore we should also consider that 
         if not self.is_charger_under_phone(self.charger_pos, dists): # If the charger is not under phone's region than move else move
-            self.move_count +=1
-            if self.move_count == 15: # Confirm if a phone is really on top of a charger (in case a phone is not detected for some frames)
-                self.move_count = 0
+            self.on_phone_count +=1
+            if self.on_phone_count >=15:
+                self.on_phone_count = 0
+            #self.move_count +=1
+            # if self.move_count == 15: # Confirm if a phone is really on top of a charger (in case a phone is not detected for some frames)
+            #     self.move_count = 0
                 if abs(self.charger_pos[0] - dists[0][0]) > 10 or abs(self.charger_pos[1] - dists[0][1]) > 10:
-                # If the left most phone moved, move the charger to the left most phone
+                    # If the left most phone moved, move the charger to the left most phone
                     self.move_count +=1
-                    if self.move_count == 5: # Wait until the phone has stayey long enough at the same position (in case a phone is not detected at certain frames)
+                    if self.move_count >= 20: # Wait until the phone has stayey long enough at the same position (in case a phone is not detected at certain frames)
                         self.charger_pos = dists[0] # Update motor position
                         self.send_2d_coordinate(self.charger_pos) # Move motor
                         print("Acutal dist: {}".format(self.charger_pos))
@@ -134,7 +138,7 @@ class MotorController:
 
     def is_charger_under_phone(self, charger_pos, dists):
         for each_dist in dists:
-            if abs(charger_pos[0]-each_dist[0])<10 or abs(charger_pos[1]-each_dist[1])<10:
+            if abs(charger_pos[0]-each_dist[0])<10 and abs(charger_pos[1]-each_dist[1])<10:
                 # The charger is under a phone
                 return True 
         return False

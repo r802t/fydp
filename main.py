@@ -91,12 +91,12 @@ def main():
     ''' This function is used to run the main program '''
     phone_detector = PhoneDetector()
     rect_detector = RectangleDetector()
-    motor_controller = MotorController('/dev/tty.usbmodem11201', run_on_motor=False)
+    motor_controller = MotorController('/dev/tty.usbmodem1101', run_on_motor=True)
     #hand_detector = HandDetector()
 
-    run_on_image(rect_detector,phone_detector,motor_controller)
+    #run_on_image(rect_detector,phone_detector,motor_controller)
 
-    #capture_live(rect_detector, phone_detector, motor_controller)#, hand_detector)
+    capture_live(rect_detector, phone_detector, motor_controller)#, hand_detector)
     #util.capture_img(os.getcwd()+'/testing_img')
     #util.capture_img(os.getcwd()+'\\calibration_img')
     #util.randomly_copy_img(os.getcwd()+'\\calibration_img', os.getcwd()+'\\calibration_img', 35, True )
