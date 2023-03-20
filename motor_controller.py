@@ -28,11 +28,16 @@ class MotorController:
             self.go_home()
             self.zero_position()
 
-    def calc_move_dist(self, rect_detector, phone_detector, override_pos=None):
+    def calc_move_dist(self, rect_detector, phone_detector, override_pos):
         ''' Find position between rectangle and phone'''
         #Get all distance between calibrator to all phones
         dists = self.get_all_dist(rect_detector, phone_detector)
-        
+        if override_pos is not None:
+            if dists[override_pos]!=self.charger_pos:
+                self.charger_pos = dists[override_pos]
+                self.send_2d_coordinate(self.charger_pos)
+                return
+            return 
         #TODO: here are frames where a phone cannot be detected in a frame and therefore we should also consider that 
         if not self.is_charger_under_phone(self.charger_pos, dists): # If the charger is not under phone's region than move else move
             self.move_count +=1
