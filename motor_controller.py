@@ -36,9 +36,9 @@ class MotorController:
         
         #TODO: here are frames where a phone cannot be detected in a frame and therefore we should also consider that 
         if not self.is_charger_under_phone(self.charger_pos, dists): # If the charger is not under phone's region than move else move
-            self.on_phone_count +=1
-            if self.on_phone_count >=15:
-                self.on_phone_count = 0
+            #self.on_phone_count +=1
+            #if self.on_phone_count >=15:
+                #self.on_phone_count = 0
             #self.move_count +=1
             # if self.move_count == 15: # Confirm if a phone is really on top of a charger (in case a phone is not detected for some frames)
             #     self.move_count = 0
