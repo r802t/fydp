@@ -37,6 +37,7 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
         control_motor(motor_controller, calibrator, phone_detector, hand_detector, override_pos)
         calibrator.clear_calibrator()
         phone_detector.clear_device()
+        hand_detector.clear_finger()
         
         cv.imshow("Live capture", frame)
 
@@ -97,7 +98,7 @@ def main():
     ''' This function is used to run the main program '''
     phone_detector = PhoneDetector()
     rect_detector = RectangleDetector()
-    motor_controller = MotorController('/dev/tty.usbmodem1101', run_on_motor=True)
+    motor_controller = MotorController('/dev/tty.usbmodem11101', run_on_motor=True)
     hand_detector = HandDetector()
 
     #run_on_image(rect_detector,phone_detector,motor_controller)
