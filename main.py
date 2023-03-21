@@ -30,9 +30,7 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
         hand_detector.draw_finger_tip(frame)
         calibrator.draw_boundary_and_center(frame)
 
-        #if hand_detector.is_finger_stay_still():
         override_pos = find_phone_under_finger(hand_detector, phone_detector)
-            #phone_pos = is_finger_on_phone(hand_detector, phone_detector)
         draw_line(calibrator, phone_detector, frame)
         control_motor(motor_controller, calibrator, phone_detector, hand_detector, override_pos)
         calibrator.clear_calibrator()
@@ -55,7 +53,6 @@ def draw_line(calibrator:RectangleDetector, phone_detector:PhoneDetector, frame)
 def control_motor(motor_controller: MotorController,calibrator:RectangleDetector, phone_detector:PhoneDetector, hand_detector: HandDetector, override_pos):
     if calibrator.calibrator.is_detected and phone_detector.devices:
         if phone_detector.devices[0].is_detected:
-            #is_finger_on_phone(hand_detector, phone_detector)
             motor_controller.calc_move_dist(calibrator, phone_detector, override_pos)
 
 def is_finger_on_phone(hand_detector:HandDetector, phone_detector:PhoneDetector):
@@ -89,7 +86,6 @@ def find_phone_under_finger(hand_detector: HandDetector, phone_detector: PhoneDe
     if hand_detector.is_finger_stay_still() is True:
         for device in phone_detector.devices:
             if device.bbox[0][0] < hand_detector.pos[0] < device.bbox[1][0] and device.bbox[0][1] < hand_detector.pos[1] < device.bbox[1][1]:
-                #print("Finger should move to device: {}".format(device.id))
                 return device.id
     return None
 
@@ -101,12 +97,7 @@ def main():
     motor_controller = MotorController('/dev/tty.usbmodem11101', run_on_motor=True)
     hand_detector = HandDetector()
 
-    #run_on_image(rect_detector,phone_detector,motor_controller)
-
     capture_live(rect_detector, phone_detector, motor_controller, hand_detector)
-    #util.capture_img(os.getcwd()+'/testing_img')
-    #util.capture_img(os.getcwd()+'\\calibration_img')
-    #util.randomly_copy_img(os.getcwd()+'\\calibration_img', os.getcwd()+'\\calibration_img', 35, True )
    
 if __name__ == "__main__":
     main()

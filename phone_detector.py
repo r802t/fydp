@@ -14,10 +14,8 @@ class PhoneDetector:
 
     def __init__(self) -> None:
         self.model = self.load_model()
-        self.model.conf = 0.4
-        self.devices = list() 
-        self.devices_prev_frame = list() 
-        self.count = 0
+        self.model.conf = 0.5
+        self.devices = list()  
         # To remember the location of each phones from last frame
         # so that we can assign the devices in proper order
 
@@ -79,8 +77,7 @@ class PhoneDetector:
         return min(lst, key=lambda x:(abs(x-num),-x))
     
     def is_rect_ratio(self, each_device):
-        #TODO: to be tested
-        if each_device[2] / each_device[3] < 0.6:
+        if each_device[2] / each_device[3] < 0.7:
             return True
         return False
     
