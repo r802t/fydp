@@ -26,9 +26,9 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
         frame = undistort_frame(frame, motor_controller.intrinsic_mtx, motor_controller.camera_dist)
         frame = phone_detector.detect_phone(frame)
         calibrator.find_cal_ref(frame)
-        calibrator.draw_boundary_and_center(frame)
         hand_detector.detect_finger_tip(frame)
         hand_detector.draw_finger_tip(frame)
+        calibrator.draw_boundary_and_center(frame)
 
         #if hand_detector.is_finger_stay_still():
         override_pos = find_phone_under_finger(hand_detector, phone_detector)
@@ -37,7 +37,6 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
         control_motor(motor_controller, calibrator, phone_detector, hand_detector, override_pos)
         calibrator.clear_calibrator()
         phone_detector.clear_device()
-        hand_detector.clear_finger()
         
         cv.imshow("Live capture", frame)
 
@@ -87,9 +86,10 @@ def undistort_frame(frame, mtx, dist):
 
 def find_phone_under_finger(hand_detector: HandDetector, phone_detector: PhoneDetector):
     ''' Find the phone under finger '''
-    if hand_detector.is_finger_stay_still():
+    if hand_detector.is_finger_stay_still() is True:
         for device in phone_detector.devices:
-            if device.bbox[0][0] < hand_detector.x < device.bbox[1][0] and device.bbox[0][1] < hand_detector.y < device.bbox[1][1]:
+            if device.bbox[0][0] < hand_detector.pos[0] < device.bbox[1][0] and device.bbox[0][1] < hand_detector.pos[1] < device.bbox[1][1]:
+                #print("Finger should move to device: {}".format(device.id))
                 return device.id
     return None
 

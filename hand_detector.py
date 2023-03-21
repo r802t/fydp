@@ -34,14 +34,15 @@ class HandDetector:
     
     def is_finger_stay_still(self):
         ''' Detect if a finger is at the same place for more than 2 seconds '''
-        if self.pos is not None:
+        if self.pos == [0,0]:
             return False 
         if abs(self.last_pos[0]-self.pos[0]) <= 30 and abs(self.last_pos[1]-self.pos[1]) <= 30:
             current_time = time.time()
             elapsed_time = current_time - self.last_time
             if elapsed_time > 3.0:
-                print("Finger has been in the same position for 3 seconds")
+                #print("Finger has been in the same position for 3 seconds")
                 return True
+            return False
         else:
             self.last_pos = self.pos
             self.last_time = time.time()

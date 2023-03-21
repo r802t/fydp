@@ -34,8 +34,8 @@ class MotorController:
         #Get all distance between calibrator to all phones
         dists = self.get_all_dist(rect_detector, phone_detector)
         if override_pos is not None:
-            if dists[override_pos]!=self.charger_pos:
-                self.charger_pos = dists[override_pos]
+            if abs(dists[override_pos-1][0]-self.charger_pos[0])>10 or abs(dists[override_pos-1][1]-self.charger_pos[1])>10:
+                self.charger_pos = dists[override_pos-1]
                 self.send_2d_coordinate(self.charger_pos)
             return 
         #TODO: here are frames where a phone cannot be detected in a frame and therefore we should also consider that 
@@ -52,7 +52,7 @@ class MotorController:
                     if self.move_count >= 20: # Wait until the phone has stayey long enough at the same position (in case a phone is not detected at certain frames)
                         self.charger_pos = dists[0] # Update motor position
                         self.send_2d_coordinate(self.charger_pos) # Move motor
-                        print("Acutal dist: {}".format(self.charger_pos))
+                        print("Actual dist: {}".format(self.charger_pos))
                         self.move_count = 0
     
         

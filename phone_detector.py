@@ -14,7 +14,7 @@ class PhoneDetector:
 
     def __init__(self) -> None:
         self.model = self.load_model()
-        self.model.conf = 0.6
+        self.model.conf = 0.4
         self.devices = list() 
         self.devices_prev_frame = list() 
         self.count = 0
