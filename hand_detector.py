@@ -9,9 +9,11 @@ class HandDetector:
                         max_num_hands=1,
                         min_detection_confidence=0.8, 
                         min_tracking_confidence=0.5)
-        self.pos = None
+        self.x = 0
+        self.y = 0
+        self.finger_on_phone = False
         self.is_detected = False
-        self.last_pos = None
+        self.pos= None
         self.last_time = time.time()
 
     def detect_finger_tip(self, frame):   
@@ -21,7 +23,8 @@ class HandDetector:
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 index_finger_tip = hand_landmarks.landmark[mp.solutions.hands.HandLandmark.INDEX_FINGER_TIP]
-                self.pos = [int(index_finger_tip.x * frame.shape[1]), int(index_finger_tip.y * frame.shape[0])]
+                self.x, self.y = int(index_finger_tip.x * frame.shape[1]), int(index_finger_tip.y * frame.shape[0])
+                self.pos = [self.x, self.y]
                 self.is_detected = True
         else:
             self.pos = None
@@ -30,20 +33,19 @@ class HandDetector:
 
 
     def draw_finger_tip(self, frame):
-        cv2.circle(frame, (self.pos), 5, (0, 255, 0), -1)
-
+        cv2.circle(frame, (self.x, self.y), 5, (0, 255, 0), -1)
+    
     def is_finger_stay_still(self):
         ''' Detect if a finger is at the same place for more than 2 seconds '''
-        if self.pos is None:
+        if self.x is None or self.y is None:
             return False 
-        if abs(self.last_pos[0]-self.pos[0]) <= 10 and abs(self.last_pos[1]-self.pos[1]) <= 10:
+        if abs(self.last_pos[0]-self.pos[0]) <= 30 and abs(self.last_pos[1]-self.pos[1]) <= 30:
             current_time = time.time()
             elapsed_time = current_time - self.last_time
             if elapsed_time > 3.0:
-                print("Finger has been in the same position for 2 seconds")
+                print("Finger has been in the same position for 3 seconds")
                 return True
         else:
             self.last_pos = self.pos
             self.last_time = time.time()
-
-        return False
+            return False

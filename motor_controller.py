@@ -36,7 +36,6 @@ class MotorController:
             if dists[override_pos]!=self.charger_pos:
                 self.charger_pos = dists[override_pos]
                 self.send_2d_coordinate(self.charger_pos)
-                return
             return 
         #TODO: here are frames where a phone cannot be detected in a frame and therefore we should also consider that 
         if not self.is_charger_under_phone(self.charger_pos, dists): # If the charger is not under phone's region than move else move
