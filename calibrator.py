@@ -46,7 +46,6 @@ class RectangleDetector(Calibrator):
         lower_mask = cv.inRange(hsv, lower_red_1, upper_red_1)
         upper_mask = cv.inRange(hsv, lower_red_2, upper_red_2)
         mask = lower_mask + upper_mask
-        cv.imshow("Mask", mask)
 
         #At night only
         # lower_red = np.array([0,150,150])
@@ -62,10 +61,10 @@ class RectangleDetector(Calibrator):
         # Find contours in the mask
         contours, _ = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
         for cnt in contours:
-            if 1500 <cv.contourArea(cnt) < 6000 : # adjust threshold if needed
+            if 1500 <cv.contourArea(cnt) < 3000 : # adjust threshold if needed
                 approx = cv.approxPolyDP(cnt, 0.02*cv.arcLength(cnt,True),True)
-                cv.fillPoly(frame,[cnt],(0,255,0))
                 if len(approx) == 4:
+                    cv.fillPoly(frame,[cnt],(0,255,0))
                     x, y, w, h = cv.boundingRect(cnt)
                     ratio = float(w)/h
                     if ratio >= 0.7 and ratio <= 1.3:
