@@ -15,7 +15,7 @@ class MotorController:
     def __init__(self,COM_port, run_on_motor):
         # a set of coordinate that sends to motor controller
         self.charger_pos = [0,0]
-        self.height = 780
+        self.height = 740
         self.load_calib_param()
         self.move_count = 0  
         self.on_phone_count = 0
@@ -112,7 +112,7 @@ class MotorController:
     def load_calib_param(self):
         ''' Load camera params from npz file '''
         try:
-            data = np.load('camera_calibration//calib_param.npz')
+            data = np.load('camera_calibration//calib_param_mar22.npz')
         except Exception as e:
             print('npz file not found')
             raise
@@ -120,10 +120,10 @@ class MotorController:
         self.camera_dist = data['dist']
         self.rvecs = data['rvecs']
         self.tvecs = data['tvecs']
-        #Jupter notebook
-        #self.intrinsic_mtx = np.array([[978, 0, 611], [0, 978, 360], [0, 0, 1]])
-        #Matlab
-        #self.intrinsic_mtx = np.array([[957, 0, 634], [0, 957, 366], [0, 0, 1]])
+        #Jupter notebook mar 22nd
+        #self.intrinsic_mtx = np.array([[953, 0, 625], [0, 952, 365], [0, 0, 1]])
+        #Matlab mar 22nd
+        #self.intrinsic_mtx = np.array([957, 0, 634], [0,957,371], [0,0,1])
 
     def poll_serial(self):
         while True:

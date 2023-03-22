@@ -92,13 +92,13 @@ def find_phone_under_finger(hand_detector: HandDetector, phone_detector: PhoneDe
 
 def main():
     ''' This function is used to run the main program '''
-    # phone_detector = PhoneDetector()
-    # rect_detector = RectangleDetector()
-    # motor_controller = MotorController('/dev/tty.usbmodem1201', run_on_motor=True)
-    # hand_detector = HandDetector()
+    phone_detector = PhoneDetector()
+    rect_detector = RectangleDetector()
+    motor_controller = MotorController('/dev/tty.usbmodem1301', run_on_motor=True)
+    hand_detector = HandDetector()
 
-    #capture_live(rect_detector, phone_detector, motor_controller, hand_detector)
-    util.capture_img(os.getcwd()+'/testing_img/train')
+    capture_live(rect_detector, phone_detector, motor_controller, hand_detector)
+    #util.capture_img(os.getcwd()+'/testing_img/train')
    
 if __name__ == "__main__":
     main()
