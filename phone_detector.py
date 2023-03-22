@@ -14,17 +14,15 @@ class PhoneDetector:
 
     def __init__(self) -> None:
         self.model = self.load_model()
-        self.model.conf = 0.6
-        self.devices = list() 
-        self.devices_prev_frame = list() 
-        self.count = 0
+        self.model.conf = 0.5
+        self.devices = list()  
         # To remember the location of each phones from last frame
         # so that we can assign the devices in proper order
 
     def load_model(self):
         ''' Load model from torch hub '''
         model = torch.hub.load('yolov5', 
-                                'custom', path='trained_models/yolov5s_phone_3.pt', source='local') 
+                                'custom', path='trained_models/yolov5s_phone_5.pt', source='local') 
         return model
     
     def detect_phone(self, img):
@@ -51,6 +49,7 @@ class PhoneDetector:
     @staticmethod
     def get_bbox(result):
         ''' Get boundary box from the detected object '''
+        # points[0]=top left points[1]=bottom right
         points = ([(round(float(result[0]-result[2]/2)),round(float(result[1]-result[3]/2))), (round(float(result[0]+result[2]/2)),round(float(result[1]+result[3]/2)))])
         return points
     
@@ -78,8 +77,7 @@ class PhoneDetector:
         return min(lst, key=lambda x:(abs(x-num),-x))
     
     def is_rect_ratio(self, each_device):
-        #TODO: to be tested
-        if each_device[2] / each_device[3] < 0.6:
+        if each_device[2] / each_device[3] < 0.8 or each_device[3] / each_device[2] < 0.8:
             return True
         return False
-    
+        

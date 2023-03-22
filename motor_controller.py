@@ -15,9 +15,10 @@ class MotorController:
     def __init__(self,COM_port, run_on_motor):
         # a set of coordinate that sends to motor controller
         self.charger_pos = [0,0]
-        self.height = 780
+        self.height = 740
         self.load_calib_param()
         self.move_count = 0  
+        self.on_phone_count = 0
         if run_on_motor:
             try:
                 self.serial = serial.Serial(COM_port, 115200)
@@ -28,24 +29,25 @@ class MotorController:
             self.go_home()
             self.zero_position()
 
-    def calc_move_dist(self, rect_detector, phone_detector):
+    def calc_move_dist(self, rect_detector, phone_detector, override_pos):
         ''' Find position between rectangle and phone'''
         #Get all distance between calibrator to all phones
         dists = self.get_all_dist(rect_detector, phone_detector)
+        if override_pos is not None:
+            if abs(dists[override_pos-1][0]-self.charger_pos[0])>10 or abs(dists[override_pos-1][1]-self.charger_pos[1])>10:
+                self.charger_pos = dists[override_pos-1]
+                self.send_2d_coordinate(self.charger_pos)
+            return 
         
-        #TODO: here are frames where a phone cannot be detected in a frame and therefore we should also consider that 
         if not self.is_charger_under_phone(self.charger_pos, dists): # If the charger is not under phone's region than move else move
-            self.move_count +=1
-            if self.move_count == 15: # Confirm if a phone is really on top of a charger (in case a phone is not detected for some frames)
-                self.move_count = 0
-                if abs(self.charger_pos[0] - dists[0][0]) > 10 or abs(self.charger_pos[1] - dists[0][1]) > 10:
+            if abs(self.charger_pos[0] - dists[0][0]) > 10 or abs(self.charger_pos[1] - dists[0][1]) > 10:
                 # If the left most phone moved, move the charger to the left most phone
-                    self.move_count +=1
-                    if self.move_count == 5: # Wait until the phone has stayey long enough at the same position (in case a phone is not detected at certain frames)
-                        self.charger_pos = dists[0] # Update motor position
-                        self.send_2d_coordinate(self.charger_pos) # Move motor
-                        print("Acutal dist: {}".format(self.charger_pos))
-                        self.move_count = 0
+                self.move_count +=1
+                if self.move_count >= 20: # Wait until the phone has stayey long enough at the same position (in case a phone is not detected at certain frames)
+                    self.charger_pos = dists[0] # Update motor position
+                    self.send_2d_coordinate(self.charger_pos) # Move motor
+                    print("Actual dist: {}".format(self.charger_pos))
+                    self.move_count = 0
     
         
 
@@ -63,7 +65,7 @@ class MotorController:
         if distance[1] < 0:
             # Adjust factor to get a more precise location
             x_dest= distance[0] - 12 * (distance[0] < 0) + 12 * (distance[0] >= 0)
-            y_dest= distance[1] - 12 * (distance[1] < 0) + 12 * (distance[1] >= 0)
+            y_dest= distance[1] #- 12 * (distance[1] < 0) + 12 * (distance[1] >= 0)
             if distance[0] > 700:
                 # If distance is too larger than the adjust factor should be changed
                 x_dest= distance[0] - 23 * (distance[0] < 0) + 23 * (distance[0] >= 0)
@@ -110,7 +112,7 @@ class MotorController:
     def load_calib_param(self):
         ''' Load camera params from npz file '''
         try:
-            data = np.load('camera_calibration//calib_param.npz')
+            data = np.load('camera_calibration//calib_param_mar22.npz')
         except Exception as e:
             print('npz file not found')
             raise
@@ -118,10 +120,10 @@ class MotorController:
         self.camera_dist = data['dist']
         self.rvecs = data['rvecs']
         self.tvecs = data['tvecs']
-        #Jupter notebook
-        #self.intrinsic_mtx = np.array([[978, 0, 611], [0, 978, 360], [0, 0, 1]])
-        #Matlab
-        #self.intrinsic_mtx = np.array([[957, 0, 634], [0, 957, 366], [0, 0, 1]])
+        #Jupter notebook mar 22nd
+        #self.intrinsic_mtx = np.array([[953, 0, 625], [0, 952, 365], [0, 0, 1]])
+        #Matlab mar 22nd
+        #self.intrinsic_mtx = np.array([957, 0, 634], [0,957,371], [0,0,1])
 
     def poll_serial(self):
         while True:
@@ -134,7 +136,7 @@ class MotorController:
 
     def is_charger_under_phone(self, charger_pos, dists):
         for each_dist in dists:
-            if abs(charger_pos[0]-each_dist[0])<10 or abs(charger_pos[1]-each_dist[1])<10:
+            if abs(charger_pos[0]-each_dist[0])<10 and abs(charger_pos[1]-each_dist[1])<10:
                 # The charger is under a phone
                 return True 
         return False
@@ -145,7 +147,7 @@ class MotorController:
     
     @staticmethod
     def is_in_allowable_region(destination):
-        return abs(destination[0]) < 855 and destination[1] < 350
+        return 0 < destination[0] < 855 and abs(destination[1]) < 350
     
     def get_all_dist(self, calibrator, phones):
         rect_world_coord = self.px2world(calibrator.calibrator.center)
