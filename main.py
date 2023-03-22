@@ -23,7 +23,7 @@ def capture_live(calibrator:RectangleDetector, phone_detector: PhoneDetector, mo
         is_capturing, frame = video_capture.read() # capture new frame
         if not is_capturing:
             break
-        #frame = undistort_frame(frame, motor_controller.intrinsic_mtx, motor_controller.camera_dist)
+        frame = undistort_frame(frame, motor_controller.intrinsic_mtx, motor_controller.camera_dist)
         frame = phone_detector.detect_phone(frame)
         calibrator.find_cal_ref(frame)
         hand_detector.detect_finger_tip(frame)
