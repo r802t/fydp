@@ -12,6 +12,7 @@ class HandDetector:
         self.finger_on_phone = False
         self.is_detected = False
         self.pos= [0,0]
+        self.last_pos = [0,0]
         self.last_time = time.time()
 
     def detect_finger_tip(self, frame):   
@@ -39,7 +40,7 @@ class HandDetector:
         if abs(self.last_pos[0]-self.pos[0]) <= 30 and abs(self.last_pos[1]-self.pos[1]) <= 30:
             current_time = time.time()
             elapsed_time = current_time - self.last_time
-            if elapsed_time > 3.0:
+            if elapsed_time > 1.5:
                 #print("Finger has been in the same position for 3 seconds")
                 return True
             return False

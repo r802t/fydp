@@ -77,7 +77,7 @@ class PhoneDetector:
         return min(lst, key=lambda x:(abs(x-num),-x))
     
     def is_rect_ratio(self, each_device):
-        if each_device[2] / each_device[3] < 0.7:
+        if each_device[2] / each_device[3] < 0.8 or each_device[3] / each_device[2] < 0.8:
             return True
         return False
-    
+        

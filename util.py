@@ -28,7 +28,7 @@ def capture_img(save_to_directory:str):
         if key == 27:
             break
         elif key == 32:
-            img_name = f'{save_to_directory}\img_{num_img+1}.jpg'
+            img_name = f'{save_to_directory}/img_{num_img+1}.jpg'
             cv.imwrite(img_name, frame)
             num_img += 1
 
