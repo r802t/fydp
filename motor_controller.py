@@ -147,7 +147,7 @@ class MotorController:
     
     @staticmethod
     def is_in_allowable_region(destination):
-        return abs(destination[0]) < 855 and destination[1] < 350
+        return 0 < destination[0] < 855 and abs(destination[1]) < 350
     
     def get_all_dist(self, calibrator, phones):
         rect_world_coord = self.px2world(calibrator.calibrator.center)
